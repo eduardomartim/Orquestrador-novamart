@@ -72,6 +72,19 @@ jobs:
       # noise on a pull request.
       - name: pip-audit
         run: python -m pip_audit --progress-spinner off --format json --output pip-audit.json
+      # What ships is the pinned lock files, not whatever the ranges above resolve
+      # to today, so audit those as well. Every pin is listed, hence --no-deps.
+      # One invocation per file: pip-audit refuses to mix hashed and unhashed
+      # requirement files (api/requirements.txt is unhashed on purpose), and the
+      # loop still reports every file before failing.
+      - name: pip-audit the shipped lock files
+        run: |
+          status=0
+          for f in requirements-api.txt api/requirements.txt requirements-dashboard.txt; do
+            echo "== $f"
+            python -m pip_audit -r "$f" --no-deps --disable-pip --progress-spinner off || status=1
+          done
+          exit "$status"
       - name: Human-readable summary
         if: always()
         run: python -m pip_audit --progress-spinner off || true
