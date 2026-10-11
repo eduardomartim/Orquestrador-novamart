@@ -394,8 +394,12 @@ def test_a_record_lookup_answers_with_its_data(container):
     )
     assert status == 200
     assert body["status"] == "success"
-    assert "ORD-1001" in body["response"]
-    assert "shipped" in body["response"]
+    # The reply is a sentence in the interface language (Portuguese by default)
+    # that names the customer and carries the tracking code from the record; it
+    # no longer echoes the order id or the English status word. Assert the data
+    # that is the same in every language.
+    assert "Ana Ribeiro" in body["response"]
+    assert "BR100100001" in body["response"]
     assert body["provider"] == "stub"
 
 
