@@ -33,8 +33,10 @@ jobs:
         # seeds rather than a random one, so a failure can be replayed exactly.
         seed: [4242, 11]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.12"
           cache: pip
@@ -44,7 +46,7 @@ jobs:
       - env:
           PYTEST_SHUFFLE_SEED: ${{ matrix.seed }}
         run: python -m pytest -m "$OFFLINE_MARKERS" --junitxml=junit-shuffle-${{ matrix.seed }}.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
           name: junit-shuffle-${{ matrix.seed }}
@@ -55,8 +57,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.12"
           cache: pip
@@ -68,10 +72,23 @@ jobs:
       # noise on a pull request.
       - name: pip-audit
         run: python -m pip_audit --progress-spinner off --format json --output pip-audit.json
+      # What ships is the pinned lock files, not whatever the ranges above resolve
+      # to today, so audit those as well. Every pin is listed, hence --no-deps.
+      # One invocation per file: pip-audit refuses to mix hashed and unhashed
+      # requirement files (api/requirements.txt is unhashed on purpose), and the
+      # loop still reports every file before failing.
+      - name: pip-audit the shipped lock files
+        run: |
+          status=0
+          for f in requirements-api.txt api/requirements.txt requirements-dashboard.txt; do
+            echo "== $f"
+            python -m pip_audit -r "$f" --no-deps --disable-pip --progress-spinner off || status=1
+          done
+          exit "$status"
       - name: Human-readable summary
         if: always()
         run: python -m pip_audit --progress-spinner off || true
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
           # Dependency names and advisory ids only. No environment, no secrets.
@@ -82,18 +99,23 @@ jobs:
     name: kind deployment + HTTP proofs
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    env:
-      # Set at job level so all three steps agree on one path.
+    steps:
+      # Exported for every later step so they all agree on one path.
       #
       # k8s_up.sh defaults this to `mktemp`, which is a shell variable inside
       # that step and gone by the next one -- so the proofs and the log check
       # would both look for a token file that, from their point of view, was
       # never written. Under runner.temp rather than the workspace: nothing
       # there can be picked up by an artifact upload.
-      TOKENS_OUT: ${{ runner.temp }}/agent-platform-tokens.json
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      #
+      # Not a job-level `env:`: the `runner` context is not available there, and
+      # a workflow that uses it is rejected as invalid before any job starts.
+      - name: Choose the token file path
+        run: echo "TOKENS_OUT=$RUNNER_TEMP/agent-platform-tokens.json" >> "$GITHUB_ENV"
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: "3.12"
           cache: pip
@@ -107,7 +129,7 @@ jobs:
           echo "034f53c4a2eb3cc66c9bf4ea6cae14f5f0bc61e1aa4799006eeb1eb8495de66d  data/kb_vectors.db" | sha256sum -c -
 
       - name: Create the cluster
-        uses: helm/kind-action@v1
+        uses: helm/kind-action@ef37e7f390d99f746eb8b610417061a60e82a6cc # v1.14.0
         with:
           cluster_name: agent-platform
           wait: 180s
