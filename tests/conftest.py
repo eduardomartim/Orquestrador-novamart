@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import os
 import random
+import sys
 from collections.abc import Iterator
 from dataclasses import dataclass, field, replace
 from decimal import Decimal
@@ -290,6 +291,36 @@ def pytest_collection_modifyitems(session, config, items):
         return
     config._shuffle_seed_reported = True
     print(f"\n[conftest] test order shuffled with seed {seed!r}")
+
+
+@pytest.fixture(autouse=True)
+def _isolate_dashboard_locale() -> Iterator[None]:
+    """Keep one test's dashboard language from becoming the next test's.
+
+    Outside a running app, ``st.session_state`` is a process-wide stand-in that
+    nothing resets, and ``dashboard/i18n.py::current_locale`` reads the locale
+    from it. A test that selects a language there (``test_i18n`` loops over both
+    and ends on English) therefore changes what every later test sees. It stays
+    invisible in the default order only because some later test happens to pop
+    the key; under ``PYTEST_SHUFFLE_SEED`` the AppTest radio formats its labels
+    in the test's thread, gets English, and fails with "'<label>' is not in
+    list" against the Portuguese options the app rendered.
+
+    The key is removed before and after every test, so each starts from the
+    default and none leaves anything behind. Only acts once streamlit has been
+    imported, so suites that never touch the dashboard pay nothing.
+    """
+
+    def forget() -> None:
+        st = sys.modules.get("streamlit")
+        if st is None:
+            return
+        key = getattr(sys.modules.get("i18n"), "LOCALE_KEY", "locale")
+        st.session_state.pop(key, None)
+
+    forget()
+    yield
+    forget()
 
 
 @pytest.fixture(autouse=True)
