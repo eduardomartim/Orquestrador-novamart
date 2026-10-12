@@ -434,20 +434,20 @@ def find_customer(name: str) -> dict[str, Any]:
             f"{first['name']} é cliente do segmento {tier}, de {first['city']}.",
             f"{first['name']} is a {tier} customer from {first['city']}.",
         )
-        orders = first.get("orders") or []
-        if orders:
-            total = sum(o["total_brl"] for o in orders)
-            listed = "; ".join(_order_phrase(o) for o in orders[:3])
-            rest = len(orders) - 3
-            more = "" if len(orders) <= 3 else pick(
+        customer_orders = first.get("orders") or []
+        if customer_orders:
+            total = sum(o["total_brl"] for o in customer_orders)
+            listed = "; ".join(_order_phrase(o) for o in customer_orders[:3])
+            rest = len(customer_orders) - 3
+            more = "" if len(customer_orders) <= 3 else pick(
                 f" e mais {rest}", f" and {rest} more"
             )
             summary += pick(
-                f" Tem {len(orders)} "
-                f"{'pedido' if len(orders) == 1 else 'pedidos'}, somando "
+                f" Tem {len(customer_orders)} "
+                f"{'pedido' if len(customer_orders) == 1 else 'pedidos'}, somando "
                 f"{_money(total)}: {listed}{more}.",
-                f" Has {len(orders)} "
-                f"{'order' if len(orders) == 1 else 'orders'}, totalling "
+                f" Has {len(customer_orders)} "
+                f"{'order' if len(customer_orders) == 1 else 'orders'}, totalling "
                 f"{_money(total)}: {listed}{more}.",
             )
         else:
