@@ -14,7 +14,7 @@ Python 3.12 · LangGraph · Google Gemini · Streamlit · Starlette · PostgreSQ
 Redis · MCP · Docker · MIT licence
 
 ---
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/5fa1a7c7-50f5-4497-b7a9-9abed252e0a8" />
+<img width="1920" height="1080" alt="Captura de tela 2026-10-12 023630" src="https://github.com/user-attachments/assets/4e1e6e01-d27b-4d93-9ee1-fe0f81f94003" />
 
 
 ## Explore in 5 minutes
