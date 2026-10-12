@@ -463,7 +463,10 @@ def test_shared_mode_still_runs_the_offline_stub(shared_settings):
         result = platform.run("What is the status of order ORD-1001?")
         assert result.status == "success"
         assert result.provider == "stub"
-        assert "ORD-1001" in result.response
+        # The reply names the customer rather than echoing the order id back
+        # (same change as in test_api.py and test_mcp_boundary.py), in either
+        # interface language.
+        assert "Ana Ribeiro" in result.response
     finally:
         platform.close()
 
@@ -507,9 +510,14 @@ def test_no_credential_and_no_raw_tool_output_reaches_the_pending_record(shared_
         # Pinned deliberately. The record is identifiers, the original request
         # and counters -- nothing else may quietly join it, because everything
         # here crosses a process boundary and lands in shared storage.
+        #
+        # ``quota_key`` (an opaque bucket id, never an address) and the
+        # ``llm_attempts`` / ``embedding_calls`` counters joined deliberately; see
+        # ``_suspended_record`` in platform.py and ``SuspendedRun`` in state/pending.py.
         assert set(payload) == {
-            "request_id", "trace_id", "user_input", "created_at",
-            "llm_calls", "tool_calls", "tool_output_bytes", "elapsed_seconds",
+            "request_id", "trace_id", "user_input", "created_at", "quota_key",
+            "llm_calls", "llm_attempts", "embedding_calls",
+            "tool_calls", "tool_output_bytes", "elapsed_seconds",
         }, f"the pending record grew fields: {sorted(payload)}"
         for forbidden in ("tool_result", "validation", "context", "api_key", "gemini"):
             assert forbidden not in raw.lower(), f"{forbidden!r} reached shared state"
