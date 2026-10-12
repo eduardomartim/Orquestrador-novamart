@@ -17,6 +17,17 @@ Redis · MCP · Docker · MIT licence
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/5fa1a7c7-50f5-4497-b7a9-9abed252e0a8" />
 
 
+## Explore in 5 minutes
+
+1. **See the idea.** [Architecture](#architecture): request flow and layers (longer version in [docs/architecture.md](docs/architecture.md)).
+2. **Read the control plane in code.** The [policy engine](src/agent_platform/guardrails/policy.py) decides; the [tool gateway](src/agent_platform/tools/gateway.py) is the only path to a tool.
+3. **Check the security claims.** [Threat model](docs/threat-model.md) and the adversarial [security tests](tests/security).
+4. **Run it offline, no key.** [Getting started](#getting-started): a deterministic stub answers, and nothing leaves your machine.
+5. **See how it is verified.** The [CI workflow](.github/workflows/ci.yml) runs lint, strict mypy, the offline and security suites, a live-gate check, Kubernetes manifest rendering, a protected-file baseline, Redis/PostgreSQL integration tests and a container build ([details](docs/ci.md)).
+6. **Know what is simulated.** Tools and data are simulated and the default AI is a stub; see [Limitations](#limitations).
+
+---
+
 ## Overview
 
 Letting a language model call tools is easy; deciding *which* calls are allowed,
@@ -322,7 +333,7 @@ npm run visual               # browser layout check against a running dashboard
 
 ## Deployment
 
-Two independent services from one repository — **neither is deployed yet**:
+Two independent services from one repository — **neither is deployed or hosted** (this is a GitHub-only portfolio project):
 
 - **Dashboard → Railway**, built from `Dockerfile.dashboard` (selected in
   `railway.toml`), health check `/_stcore/health`.
@@ -366,7 +377,7 @@ Details, variables and caveats: [docs/deploy.md](docs/deploy.md).
   measures the platform, not a model.
 - The in-process tool timeout cannot cancel a running Python thread; the MCP
   transport supports stdio only.
-- Not yet deployed; the CI workflow is defined but has not run on GitHub.
+- Not deployed or hosted anywhere: this is a GitHub-only portfolio project. CI runs on GitHub Actions on every pull request and push to `main` (see [docs/ci.md](docs/ci.md)).
 
 ---
 
