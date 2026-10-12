@@ -129,7 +129,7 @@ jobs:
           echo "034f53c4a2eb3cc66c9bf4ea6cae14f5f0bc61e1aa4799006eeb1eb8495de66d  data/kb_vectors.db" | sha256sum -c -
 
       - name: Create the cluster
-        uses: helm/kind-action@ef37e7f390d99f746eb8b610417061a60e82a6cc # v1.14.0
+        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
         with:
           cluster_name: agent-platform
           wait: 180s
